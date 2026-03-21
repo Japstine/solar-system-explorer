@@ -5,17 +5,33 @@ export function Sun() {
   const ref = useRef()
 
   useFrame(() => {
-    ref.current.rotation.y += 0.001
+    ref.current.rotation.y += 0.0008
   })
 
   return (
-    <mesh ref={ref} position={[0, 0, 0]}>
-      <sphereGeometry args={[2.5, 32, 32]} />
-      <meshStandardMaterial
-        color="#FDB813"
-        emissive="#F97306"
-        emissiveIntensity={0.8}
-      />
-    </mesh>
+    <group>
+      {/* Core */}
+      <mesh ref={ref}>
+        <sphereGeometry args={[8, 32, 32]} />
+        <meshStandardMaterial
+          color="#FDB813"
+          emissive="#FF8C00"
+          emissiveIntensity={1.5}
+        />
+      </mesh>
+
+      {/* Outer glow layer */}
+      <mesh>
+        <sphereGeometry args={[10, 32, 32]} />
+        <meshStandardMaterial
+          color="#FF6600"
+          emissive="#FF4400"
+          emissiveIntensity={0.6}
+          transparent
+          opacity={0.15}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
   )
 }
