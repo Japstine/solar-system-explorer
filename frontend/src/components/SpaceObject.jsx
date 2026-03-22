@@ -15,15 +15,15 @@ function ProbeMesh({ color, size, hovered }) {
   return (
     <group>
       <mesh>
-        <sphereGeometry args={[size, 16, 16]} />
+        <octahedronGeometry args={[size, 0]} />
         <meshBasicMaterial color={color} />
       </mesh>
-      <mesh>
-        <sphereGeometry args={[size * 2.2, 16, 16]} />
+      <mesh scale={2.0}>
+        <octahedronGeometry args={[size, 0]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={hovered ? 0.35 : 0.15}
+          opacity={hovered ? 0.3 : 0.1}
           depthWrite={false}
         />
       </mesh>
@@ -35,15 +35,23 @@ function VehicleMesh({ color, size, hovered }) {
   return (
     <group>
       <mesh>
-        <sphereGeometry args={[size, 16, 16]} />
+        <boxGeometry args={[size * 1.8, size * 0.8, size * 1.2]} />
         <meshBasicMaterial color={color} />
       </mesh>
+      <mesh position={[size * 1.8, 0, 0]}>
+        <boxGeometry args={[size * 1.2, size * 0.08, size * 0.8]} />
+        <meshBasicMaterial color="#4488ff" />
+      </mesh>
+      <mesh position={[-size * 1.8, 0, 0]}>
+        <boxGeometry args={[size * 1.2, size * 0.08, size * 0.8]} />
+        <meshBasicMaterial color="#4488ff" />
+      </mesh>
       <mesh>
-        <sphereGeometry args={[size * 2.2, 16, 16]} />
+        <boxGeometry args={[size * 2.2, size * 1.2, size * 1.8]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={hovered ? 0.35 : 0.15}
+          opacity={hovered ? 0.3 : 0.1}
           depthWrite={false}
         />
       </mesh>
@@ -55,15 +63,27 @@ function TelescopeMesh({ color, size, hovered }) {
   return (
     <group>
       <mesh>
-        <sphereGeometry args={[size, 16, 16]} />
+        <cylinderGeometry args={[size * 0.6, size * 0.8, size * 2.5, 8]} />
         <meshBasicMaterial color={color} />
       </mesh>
+      <mesh position={[0, size * 1.3, 0]}>
+        <torusGeometry args={[size * 0.7, size * 0.15, 8, 16]} />
+        <meshBasicMaterial color="#aaaaaa" />
+      </mesh>
+      <mesh position={[size * 1.6, 0, 0]}>
+        <boxGeometry args={[size * 1.4, size * 0.08, size * 0.9]} />
+        <meshBasicMaterial color="#4488ff" />
+      </mesh>
+      <mesh position={[-size * 1.6, 0, 0]}>
+        <boxGeometry args={[size * 1.4, size * 0.08, size * 0.9]} />
+        <meshBasicMaterial color="#4488ff" />
+      </mesh>
       <mesh>
-        <sphereGeometry args={[size * 2.2, 16, 16]} />
+        <cylinderGeometry args={[size * 1.2, size * 1.4, size * 3, 8]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={hovered ? 0.35 : 0.15}
+          opacity={hovered ? 0.3 : 0.1}
           depthWrite={false}
         />
       </mesh>
@@ -100,6 +120,16 @@ export function SpaceObject({ data, onClick }) {
 
   const pos = [position.x, position.z, position.y]
 
+  // True 3D distance from Sun in scene units
+  const distFromSun = Math.sqrt(
+    position.x ** 2 + position.y ** 2 + position.z ** 2
+  )
+
+  // Only scale up probes that are far away — planets and nearby objects unaffected
+  const scaledSize = isProbe && distFromSun > 500
+    ? size * (distFromSun / 500) * 0.6
+    : size
+
   useFrame(() => {
     if (!ref.current) return
     ref.current.rotation.y += isProbe ? 0.012 : 0.004
@@ -111,7 +141,12 @@ export function SpaceObject({ data, onClick }) {
       renderOrder={isPlanet ? 2 : 1}
     >
       {isProbe && (
-        <pointLight color={color} intensity={6} distance={120} decay={2} />
+        <pointLight
+          color={color}
+          intensity={6}
+          distance={scaledSize * 20}
+          decay={2}
+        />
       )}
 
       <group
@@ -120,11 +155,16 @@ export function SpaceObject({ data, onClick }) {
         onPointerOut={() => setHovered(false)}
         onClick={e => { e.stopPropagation(); onClick(data) }}
       >
-        <ObjectMesh type={type} color={color} size={size ?? 1.0} hovered={hovered} />
+        <ObjectMesh
+          type={type}
+          color={color}
+          size={scaledSize}
+          hovered={hovered}
+        />
 
         {isProbe && (
           <mesh visible={false}>
-            <sphereGeometry args={[size * 0.6, 8, 8]} />
+            <sphereGeometry args={[scaledSize * 0.6, 8, 8]} />
             <meshBasicMaterial transparent opacity={0} />
           </mesh>
         )}
