@@ -1,85 +1,60 @@
-import { Canvas } from '@react-three/fiber'
+import { Canvas }      from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { Sun }         from './components/Sun'
+import { SpaceObject } from './components/SpaceObject'
+import { OrbitRing }   from './components/OrbitRing'
+import { useThree }    from '@react-three/fiber'
+import { useEffect }   from 'react'
 
-function Sun() {
-  return (
-    <mesh position={[0, 0, 0]}>
-      <sphereGeometry args={[2.5, 32, 32]} />
-      <meshStandardMaterial
-        color="#FDB813"
-        emissive="#F97306"
-        emissiveIntensity={0.6}
-      />
-    </mesh>
-  )
+function RaycastPriority() {
+  const { raycaster } = useThree()
+
+  useEffect(() => {
+    raycaster.params.Points = { threshold:  1 }
+    raycaster.params.Line   = { threshold:  1 }
+  }, [raycaster])
+
+  return null
 }
 
-function Planet({ position, color, size, speed }) {
-  const ref = useRef()
+export default function Scene({ objects, onObjectClick, date }) {
+  const planets = objects.filter(o => o.type === 'planet' || o.type === 'dwarf_planet')
+  const probes  = objects.filter(o => o.type !== 'planet' && o.type !== 'dwarf_planet')
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * speed
-    ref.current.position.x = position[0] * Math.cos(t)
-    ref.current.position.z = position[0] * Math.sin(t)
-  })
-
-  return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[size, 32, 32]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
-  )
-}
-
-function OrbitRing({ radius }) {
-  return (
-    <mesh rotation={[Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[radius, 0.02, 8, 128]} />
-      <meshBasicMaterial color="#ffffff" opacity={0.15} transparent />
-    </mesh>
-  )
-}
-
-export default function Scene() {
   return (
     <Canvas
-      camera={{ position: [0, 40, 80], fov: 60, near: 0.1, far: 5000 }}
+      camera={{ position: [0, 4500, 4500], fov: 60, near: 0.1, far: 200000 }}
+      gl={{ antialias: true }}
     >
-      <ambientLight intensity={0.15} />
-      <pointLight position={[0, 0, 0]} intensity={4} color="#FFF5E0" />
+      <color attach="background" args={['#04050f']} />
+      <ambientLight intensity={1.5} />
+      <pointLight position={[0,0,0]} intensity={25} color="#FFF5E0" distance={15000} decay={0.8} />
+      <Stars radius={20000} depth={500} count={10000} factor={6} saturation={0.3} fade />
 
-      <Stars
-        radius={300}
-        depth={60}
-        count={6000}
-        factor={4}
-        saturation={0}
-        fade
-      />
-
+      <RaycastPriority />
       <Sun />
 
-      <OrbitRing radius={10} />
-      <Planet position={[10, 0, 0]} color="#1a6bb5" size={0.9} speed={0.4} />
+      {probes.map(obj => (
+        <SpaceObject key={obj.id} data={obj} onClick={onObjectClick} />
+      ))}
 
-      <OrbitRing radius={16} />
-      <Planet position={[16, 0, 0]} color="#c1440e" size={0.5} speed={0.2} />
+      {planets.map(obj => (
+        <group key={obj.id}>
+          <OrbitRing
+            planetId={obj.id}
+            color={obj.color}
+            date={date}
+          />
+          <SpaceObject data={obj} onClick={onObjectClick} />
+        </group>
+      ))}
 
-      <OrbitRing radius={26} />
-      <Planet position={[26, 0, 0]} color="#c88b3a" size={2.0} speed={0.08} />
-
-      <OrbitRing radius={36} />
-      <Planet position={[36, 0, 0]} color="#e4d191" size={1.7} speed={0.04} />
 
       <OrbitControls
-        enablePan
-        enableZoom
-        enableRotate
-        minDistance={5}
-        maxDistance={500}
-        zoomSpeed={1.2}
+        enablePan enableZoom enableRotate
+        minDistance={10}
+        maxDistance={80000}
+        zoomSpeed={3.0}
       />
     </Canvas>
   )
