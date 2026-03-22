@@ -3,6 +3,19 @@ import { OrbitControls, Stars } from '@react-three/drei'
 import { Sun }         from './components/Sun'
 import { SpaceObject } from './components/SpaceObject'
 import { OrbitRing }   from './components/OrbitRing'
+import { useThree }    from '@react-three/fiber'
+import { useEffect }   from 'react'
+
+function RaycastPriority() {
+  const { raycaster } = useThree()
+
+  useEffect(() => {
+    raycaster.params.Points = { threshold:  1 }
+    raycaster.params.Line   = { threshold:  1 }
+  }, [raycaster])
+
+  return null
+}
 
 export default function Scene({ objects, onObjectClick, date }) {
   const planets = objects.filter(o => o.type === 'planet' || o.type === 'dwarf_planet')
@@ -18,7 +31,12 @@ export default function Scene({ objects, onObjectClick, date }) {
       <pointLight position={[0,0,0]} intensity={25} color="#FFF5E0" distance={15000} decay={0.8} />
       <Stars radius={20000} depth={500} count={10000} factor={6} saturation={0.3} fade />
 
+      <RaycastPriority />
       <Sun />
+
+      {probes.map(obj => (
+        <SpaceObject key={obj.id} data={obj} onClick={onObjectClick} />
+      ))}
 
       {planets.map(obj => (
         <group key={obj.id}>
@@ -31,9 +49,6 @@ export default function Scene({ objects, onObjectClick, date }) {
         </group>
       ))}
 
-      {probes.map(obj => (
-        <SpaceObject key={obj.id} data={obj} onClick={onObjectClick} />
-      ))}
 
       <OrbitControls
         enablePan enableZoom enableRotate

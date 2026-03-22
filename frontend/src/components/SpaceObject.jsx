@@ -15,22 +15,18 @@ function ProbeMesh({ color, size, hovered }) {
   return (
     <group>
       <mesh>
-        <octahedronGeometry args={[size, 0]} />
+        <sphereGeometry args={[size, 16, 16]} />
         <meshBasicMaterial color={color} />
       </mesh>
-      <mesh scale={2.0}>
-        <octahedronGeometry args={[size, 0]} />
-        <meshBasicMaterial color={color} wireframe transparent opacity={0.4} />
-      </mesh>
-      <sprite scale={[size * 20, size * 20, 1]}>
-        <spriteMaterial
+      <mesh>
+        <sphereGeometry args={[size * 2.2, 16, 16]} />
+        <meshBasicMaterial
           color={color}
-          opacity={hovered ? 0.7 : 0.4}
           transparent
+          opacity={hovered ? 0.35 : 0.15}
           depthWrite={false}
-          sizeAttenuation
         />
-      </sprite>
+      </mesh>
     </group>
   )
 }
@@ -39,18 +35,18 @@ function VehicleMesh({ color, size, hovered }) {
   return (
     <group>
       <mesh>
-        <boxGeometry args={[size, size * 0.6, size * 2]} />
+        <sphereGeometry args={[size, 16, 16]} />
         <meshBasicMaterial color={color} />
       </mesh>
-      <sprite scale={[size * 20, size * 20, 1]}>
-        <spriteMaterial
+      <mesh>
+        <sphereGeometry args={[size * 2.2, 16, 16]} />
+        <meshBasicMaterial
           color={color}
-          opacity={hovered ? 0.7 : 0.4}
           transparent
+          opacity={hovered ? 0.35 : 0.15}
           depthWrite={false}
-          sizeAttenuation
         />
-      </sprite>
+      </mesh>
     </group>
   )
 }
@@ -59,50 +55,63 @@ function TelescopeMesh({ color, size, hovered }) {
   return (
     <group>
       <mesh>
-        <cylinderGeometry args={[size * 0.5, size, size * 2, 6]} />
-        <meshBasicMaterial color={color} wireframe />
+        <sphereGeometry args={[size, 16, 16]} />
+        <meshBasicMaterial color={color} />
       </mesh>
-      <sprite scale={[size * 20, size * 20, 1]}>
-        <spriteMaterial
+      <mesh>
+        <sphereGeometry args={[size * 2.2, 16, 16]} />
+        <meshBasicMaterial
           color={color}
-          opacity={hovered ? 0.7 : 0.4}
           transparent
+          opacity={hovered ? 0.35 : 0.15}
           depthWrite={false}
-          sizeAttenuation
         />
-      </sprite>
+      </mesh>
     </group>
+  )
+}
+
+function DwarfPlanetMesh({ color, size, hovered }) {
+  return (
+    <mesh>
+      <sphereGeometry args={[size, 24, 24]} />
+      <meshBasicMaterial color={hovered ? '#ffffff' : color} />
+    </mesh>
   )
 }
 
 function ObjectMesh({ type, color, size, hovered }) {
   switch (type) {
-    case 'vehicle':      return <VehicleMesh    color={color} size={size} hovered={hovered} />
-    case 'telescope':    return <TelescopeMesh  color={color} size={size} hovered={hovered} />
-    case 'probe':        return <ProbeMesh      color={color} size={size} hovered={hovered} />
-    default:             return <PlanetMesh     color={color} size={size} hovered={hovered} />
+    case 'vehicle':      return <VehicleMesh     color={color} size={size} hovered={hovered} />
+    case 'telescope':    return <TelescopeMesh   color={color} size={size} hovered={hovered} />
+    case 'probe':        return <ProbeMesh       color={color} size={size} hovered={hovered} />
+    case 'dwarf_planet': return <DwarfPlanetMesh color={color} size={size} hovered={hovered} />
+    default:             return <PlanetMesh      color={color} size={size} hovered={hovered} />
   }
 }
 
 export function SpaceObject({ data, onClick }) {
-  const ref     = useRef()
+  const ref      = useRef()
   const [hovered, setHovered] = useState(false)
 
   const { position, name, color, size, type } = data
-  const isProbe = type !== 'planet' && type !== 'dwarf_planet'
+  const isProbe  = type !== 'planet' && type !== 'dwarf_planet'
+  const isPlanet = type === 'planet'  || type === 'dwarf_planet'
 
   const pos = [position.x, position.z, position.y]
 
   useFrame(() => {
     if (!ref.current) return
     ref.current.rotation.y += isProbe ? 0.012 : 0.004
-    if (isProbe) ref.current.rotation.x += 0.006
   })
 
   return (
-    <group position={pos}>
+    <group
+      position={pos}
+      renderOrder={isPlanet ? 2 : 1}
+    >
       {isProbe && (
-        <pointLight color={color} intensity={8} distance={200} decay={2} />
+        <pointLight color={color} intensity={6} distance={120} decay={2} />
       )}
 
       <group
@@ -112,6 +121,13 @@ export function SpaceObject({ data, onClick }) {
         onClick={e => { e.stopPropagation(); onClick(data) }}
       >
         <ObjectMesh type={type} color={color} size={size ?? 1.0} hovered={hovered} />
+
+        {isProbe && (
+          <mesh visible={false}>
+            <sphereGeometry args={[size * 0.6, 8, 8]} />
+            <meshBasicMaterial transparent opacity={0} />
+          </mesh>
+        )}
       </group>
 
       {hovered && (
