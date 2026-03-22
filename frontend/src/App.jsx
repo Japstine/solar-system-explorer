@@ -15,7 +15,11 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000008', position: 'relative' }}>
 
-      <Scene objects={objects} onObjectClick={setSelected} />
+      <Scene 
+        objects={objects}
+        onObjectClick={setSelected}
+        date = {date}
+      />
 
       <Legend />
 

@@ -1,24 +1,30 @@
-export function OrbitRing({ position }) {
-  if (!position) return null
+import { useMemo, useRef } from 'react'
+import { BufferGeometry, BufferAttribute, LineLoop } from 'three'
+import { computeOrbitPoints } from '../utils/orbitMath'
 
-  // Orbit radius is the XZ distance from origin (ignore Y which is ecliptic tilt)
-  const radius = Math.sqrt(
-    position.x ** 2 +
-    position.y ** 2 +
-    position.z ** 2
+export function OrbitRing({ planetId, color = '#ffffff', date }) {
+  const points = useMemo(
+    () => computeOrbitPoints(planetId, date, 512),
+    [planetId, date]
   )
 
-  if (radius < 1) return null
+  const geometry = useMemo(() => {
+    if (!points) return null
+    const geo = new BufferGeometry()
+    geo.setAttribute('position', new BufferAttribute(points, 3))
+    return geo
+  }, [points])
 
-  const tube = Math.max(0.8, radius * 0.003)
+  if (!geometry) return null
 
   return (
-    <mesh rotation={[Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[radius, tube, 8, 256]} />
-      <meshBasicMaterial color="#ffffff"
-        opacity={0.33}
-        transparent = {true}
-        depthWrite={false} />
-    </mesh>
+    <lineLoop geometry={geometry}>
+      <lineBasicMaterial
+        color={color}
+        opacity={0.55}
+        transparent
+        depthWrite={false}
+      />
+    </lineLoop>
   )
 }
