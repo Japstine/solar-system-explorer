@@ -33,20 +33,21 @@ objects (Tesla Roadster) using real positional data from NASA's Horizons API.
 ### Run locally
 
 # Clone the repo
-git clone https://github.com/your-username/solar-system-explorer.git
-cd solar-system-explorer
+`git clone https://github.com/your-username/solar-system-explorer.git`
+`cd solar-system-explorer`
 
 # Frontend
-cd frontend
-npm install
-npm run dev
+`cd frontend`
+`npm install`
+`npm run dev`
+
 
 # Backend (new terminal)
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload
+`cd backend`
+`python -m venv venv`
+`source venv/bin/activate  # Windows: venv\Scripts\activate`
+`pip install -r requirements.txt`
+`uvicorn main:app --reload`
 
 ## Environment Variables
 
