@@ -1,3 +1,10 @@
+# Python bytecode
+__pycache__/
+**/__pycache__/
+backend/**/__pycache__/
+*.pyc
+*.pyo
+
 # Python
 backend/venv/
 backend/__pycache__/
